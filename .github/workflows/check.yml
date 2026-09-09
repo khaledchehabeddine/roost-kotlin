@@ -1,0 +1,51 @@
+name: Package consumption
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_revision:
+        description: Roost source commit to build and check
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-consumption
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: RelayNet/roost
+          ref: ${{ inputs.source_revision }}
+          token: ${{ secrets.ROOST_SOURCE_TOKEN }}
+          persist-credentials: false
+          path: .source
+      - run: rustup show active-toolchain
+        working-directory: .source
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .source
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "ndk;28.2.13676358" "platforms;android-36" "build-tools;36.0.0"
+      - run: echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.2.13676358" >> "$GITHUB_ENV"
+      - run: cargo install cargo-ndk --version 4.1.2 --locked
+      - name: Allow emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - run: ./check.sh .source

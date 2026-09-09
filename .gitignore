@@ -1,0 +1,7 @@
+.source/
+.gradle/
+.kotlin/
+**/build/
+consumer/src/androidTest/assets/evidence_bundles_v1.json
+local.properties
+.DS_Store
