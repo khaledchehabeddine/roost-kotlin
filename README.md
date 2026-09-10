@@ -5,10 +5,10 @@ Roost checkout, or dispatch the **Package consumption** workflow with the exact 
 revision intended for release. Prerequisites are in Roost's `docs/building-mobile.md`.
 
 The check builds one production package, loads its native library and tests foreign storage
-error recovery, binary Transport Binding conversion, and canonical evidence results.
+error recovery, binary Transport Binding conversion, and evidence result conversion.
 Independent native signature verification remains in the Swift suite; Android API 36 does not
 provide the key import used by the former desktop JDK check.
-The evidence fixture is copied from the selected source at test time. Rust owns protocol scenarios.
+The package tests keep their signed example locally. Rust owns protocol scenarios.
 
 Run this when bindings or packaging change and before releasing. Publish the checked artifact
 bytes with the matching source revision and version. These checks do not publish anything.
