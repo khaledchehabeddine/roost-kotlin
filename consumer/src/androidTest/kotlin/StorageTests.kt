@@ -3,15 +3,15 @@ package io.github.relaynet.roost.consumer
 import android.test.InstrumentationTestCase
 import io.github.relaynet.roost.*
 
-private class MemoryStorage : SecureStorage {
+class MemoryStorage : SecureStorage {
     private val values = mutableMapOf<String, ByteArray>()
     var failNextLoad = false
-    var loseNextStoreReply = false
+    var loseNextSaveReply = false
 
-    @Synchronized override fun store(key: String, value: ByteArray) {
+    @Synchronized override fun save(key: String, value: ByteArray) {
         values[key] = value.copyOf()
-        if (loseNextStoreReply) {
-            loseNextStoreReply = false
+        if (loseNextSaveReply) {
+            loseNextSaveReply = false
             throw IllegalStateException("lost storage reply")
         }
     }
@@ -24,35 +24,35 @@ private class MemoryStorage : SecureStorage {
         return values[key]?.copyOf()
     }
 
-    @Synchronized override fun delete(key: String) { values.remove(key) }
+    @Synchronized override fun remove(key: String) { values.remove(key) }
 }
 
 class StorageTests : InstrumentationTestCase() {
-    fun testUnexpectedCallbackErrorLeavesClientUsable() {
+    fun testUnexpectedCallbackErrorLeavesContextUsable() {
         val storage = MemoryStorage()
-        val client = Client(storage)
+        val context = IdentityContext(storage)
         storage.failNextLoad = true
         try {
-            client.identity().hasIdentity()
+            context.identity()
             fail("expected storage error")
-        } catch (_: ClientException.Storage) {}
-        assertFalse(client.identity().hasIdentity())
+        } catch (_: RoostException.Storage) {}
+        assertNull(context.identity())
     }
 
     fun testLostWriteReplyRecoversOriginalIdentityAcrossReopen() {
         val storage = MemoryStorage()
-        val client = Client(storage)
-        val prepared = client.identity().prepareGenerateIdentity()
-        client.commitOperation(prepared.operation.identifier)
-        storage.loseNextStoreReply = true
+        val context = IdentityContext(storage)
+        val prepared = context.prepareIdentityCreation()
+        context.reserveOperation(prepared.operationId)
+        storage.loseNextSaveReply = true
         try {
-            client.finalizeOperation(prepared.operation.identifier)
+            context.finalizeOperation(prepared.operationId)
             fail("expected lost write reply")
-        } catch (_: ClientException.Storage) {}
-        val reopened = Client(storage)
-        reopened.finalizeOperation(prepared.operation.identifier)
-        assertTrue(reopened.identity().loadIdentity().ed25519VerifyingKey.contentEquals(
-            prepared.identity.ed25519VerifyingKey))
+        } catch (_: RoostException.Storage) {}
+        val reopened = IdentityContext(storage)
+        reopened.finalizeOperation(prepared.operationId)
+        assertTrue(reopened.identity()!!.key.signingKey.contentEquals(
+            prepared.identity.key.signingKey))
         assertTrue(reopened.unfinishedOperations().isEmpty())
     }
 }

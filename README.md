@@ -47,8 +47,8 @@ Run `./check.sh <roost-checkout>` or dispatch **Package consumption** on `main` 
 SHA. The workflow requires owner initiation, including reruns, and `ROOST_READ_TOKEN` with Contents
 read access to Roost. It builds once, checks every shipped ABI and production classes, and exercises
 the resulting AAR/POM on one API 36 emulator. The tests cover loading, foreign storage errors,
-lost-write recovery, binary Transport Binding conversion and evidence results. Swift owns the
-independent CryptoKit check; Kotlin adds no signature provider. Rust owns protocol scenarios.
+lost-write recovery and binary Transport Binding conversion. Swift owns the independent CryptoKit
+check; Kotlin adds no signature provider. Rust owns protocol scenarios.
 
 The workflow uploads the exact AAR/POM and tool-version notes for 30 days. Run it before publication
 and after changes to bindings, packaging, release commands, toolchains, ABI lists, package layout

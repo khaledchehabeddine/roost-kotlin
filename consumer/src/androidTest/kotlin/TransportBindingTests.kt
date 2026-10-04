@@ -5,16 +5,16 @@ import io.github.relaynet.roost.*
 
 class TransportBindingTests : InstrumentationTestCase() {
     fun testBinaryBindingAuthenticatesSlices() {
-        val alice = Client(InMemorySecureStorage())
-        val bob = Client(InMemorySecureStorage())
-        val aliceIdentity = alice.identity().prepareGenerateIdentity()
-        complete(alice, aliceIdentity.operation)
-        val bobIdentity = bob.identity().prepareGenerateIdentity()
-        complete(bob, bobIdentity.operation)
-        val signedPrekey = bob.identity().prepareRotateSignedPrekeyNow()
-        complete(bob, signedPrekey.operation)
-        val publication = bob.identity().currentPublicationBundle()
-        val selection = PreKeySelection(publication.signedPrekey.identifier, null)
+        val alice = IdentityContext(MemoryStorage())
+        val bob = IdentityContext(MemoryStorage())
+        val aliceIdentity = alice.prepareIdentityCreation()
+        complete(alice, aliceIdentity.operationId)
+        val bobIdentity = bob.prepareIdentityCreation()
+        complete(bob, bobIdentity.operationId)
+        val signedPrekey = bob.prepareSignedPrekeyRotation()
+        complete(bob, signedPrekey.operationId)
+        val publication = bob.currentPublication()
+        val selection = PreKeySelection(publication.signedPrekey.id, null)
 
         // Kotlin bytes are signed. Slices must preserve NUL and high-bit bytes.
         val backing = byteArrayOf(0x55, 0x00, 0x7f, 0x80.toByte(), 0xff.toByte(), 0x55)
@@ -33,7 +33,7 @@ class TransportBindingTests : InstrumentationTestCase() {
             TransportBinding(byteArrayOf(0x00, 0x7f, 0x80.toByte(), 0xff.toByte())),
             selection,
         )
-        check(hint.ed25519VerifyingKey.contentEquals(aliceIdentity.identity.ed25519VerifyingKey))
+        check(hint.key.signingKey.contentEquals(aliceIdentity.identity.key.signingKey))
         try {
             bob.messaging().initiatorIdentityHint(
                 initiation.message,
@@ -41,12 +41,12 @@ class TransportBindingTests : InstrumentationTestCase() {
                 selection,
             )
             error("changed binding byte authenticated")
-        } catch (_: ClientException.AuthenticationFailed) { }
+        } catch (_: RoostException.AuthenticationFailed) { }
     }
 
-    private fun complete(client: Client, operation: KeyStoreOperation) {
-        client.commitOperation(operation.identifier)
-        client.finalizeOperation(operation.identifier)
+    private fun complete(context: IdentityContext, id: OperationId) {
+        context.reserveOperation(id)
+        context.finalizeOperation(id)
     }
 
 }
