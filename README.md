@@ -12,8 +12,8 @@ repositories {
 }
 ```
 
-Add the dependency to your module's `build.gradle.kts`:
+Add the dependency to your module's `build.gradle.kts`, with the latest release's version:
 
 ```kotlin
-implementation("com.chirp:roost:0.16.0")
+implementation("com.chirp:roost:X.Y.Z")
 ```
