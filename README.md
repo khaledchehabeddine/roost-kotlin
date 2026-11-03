@@ -15,5 +15,5 @@ repositories {
 Add the dependency to your module's `build.gradle.kts`:
 
 ```kotlin
-implementation("com.chirp:roost:0.16.0")
+implementation("com.chirp:roost:X.Y.Z")
 ```
