@@ -8,7 +8,7 @@ Add the repository to `dependencyResolutionManagement` in your `settings.gradle.
 
 ```kotlin
 repositories {
-    maven("https://maven.pkg.github.com/chirp-org/roost-kotlin")
+    maven("https://maven.pkg.github.com/khaledchehabeddine/roost-kotlin")
 }
 ```
 
