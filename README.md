@@ -4,11 +4,21 @@ The cryptographic core for private, end-to-end encrypted messaging in Kotlin app
 
 ## Usage
 
+GitHub Packages requires a GitHub account for every download. Add your username and a classic personal access token with the `read:packages` scope to `~/.gradle/gradle.properties`:
+
+```properties
+GitHubPackagesUsername=USERNAME
+GitHubPackagesPassword=TOKEN
+```
+
 Add the repository to `dependencyResolutionManagement` in your `settings.gradle.kts`:
 
 ```kotlin
 repositories {
-    maven("https://maven.pkg.github.com/khaledchehabeddine/roost-kotlin")
+    maven("https://maven.pkg.github.com/khaledchehabeddine/roost-kotlin") {
+        name = "GitHubPackages"
+        credentials(PasswordCredentials::class)
+    }
 }
 ```
 
